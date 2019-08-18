@@ -30,7 +30,7 @@ def render_grid_with_sets(grid):  # used for debug purposes
                 print("---------------------")
 
 
-def forwardCheck(grid):
+def forward_check(grid):
     grid_changed = False
 
     # go through each x position in grid - ie each column
@@ -111,10 +111,10 @@ def forwardCheck(grid):
     return True, grid_changed
 
 
-def getValidCompleteGrid(grid):
+def get_valid_complete_grid(grid):
     # loop until the grid has not been changed OR if we determine that the grid cannot be solved
     while True:
-        can_be_solved, grid_changed = forwardCheck(grid)
+        can_be_solved, grid_changed = forward_check(grid)
         if not can_be_solved:  # grid cannot be solved - terminate
             return False
         elif not grid_changed:  # grid cannot be processed any more
@@ -122,12 +122,12 @@ def getValidCompleteGrid(grid):
 
 
 def solve(grid):
-    resolveZerosInGrid(grid)
+    resolve_zeros_in_grid(grid)
 
-    can_be_solved = getValidCompleteGrid(grid)
+    can_be_solved = get_valid_complete_grid(grid)
     if not can_be_solved:
         return None
-    elif checkIfSolveCompleted(grid):
+    elif check_if_solve_completed(grid):
         return grid
 
     # we must still have positions containing sets - try each of the values in the set
@@ -146,7 +146,7 @@ def solve(grid):
                 return None  # no value in the set caused the solve to complete
 
 
-def checkIfSolveCompleted(grid):
+def check_if_solve_completed(grid):
     for y in range(9):
         for x in range(9):
             # check if position is instance of a set
@@ -155,7 +155,8 @@ def checkIfSolveCompleted(grid):
                 return False
     return True
 
-def resolveZerosInGrid(grid):
+
+def resolve_zeros_in_grid(grid):
     for y in range(9):
         for x in range(9):
             if grid[x][y] == 0:  # replace with set of possible values
