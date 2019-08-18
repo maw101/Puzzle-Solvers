@@ -1,4 +1,4 @@
-from copy import deepcopy as dc
+import time
 
 
 def render_grid(grid):
@@ -15,6 +15,7 @@ def render_grid(grid):
             print(row_string)
             if row in [2, 5]:  # print divider every 3 rows
                 print("---------------------")
+
 
 def render_grid_with_sets(grid):  # used for debug purposes
     if grid is not None:
@@ -40,7 +41,8 @@ def forward_check(grid):
         # get all values that are set in stone within the column
         #   only adds values to the set if they are not an instance of a set
         #   ie when there is only one value in the position
-        final_values_in_column = set([val for val in column if not isinstance(val, set)])
+        final_values_in_column = set([int(val) for val in column if not isinstance(val, set)])
+
         # loop through each row in the column
         for y in range(9):
             # check if current position refers to set - if it does then value not set yet and we are still finding it
@@ -48,6 +50,7 @@ def forward_check(grid):
                 # try to set value
                 # get set difference between position and values already set in the column
                 grid[x][y] = grid[x][y] - final_values_in_column
+
                 if len(grid[x][y]) == 1:  # can set this single value in stone
                     # get the only value from the positions set and store it in the position
                     grid[x][y] = grid[x][y].pop()
@@ -64,7 +67,7 @@ def forward_check(grid):
         # get all values that are set in stone within the row
         #   only adds values to the set if they are not an instance of a set
         #   ie when there is only one value in the position
-        final_values_in_row = set([val for val in row if not isinstance(val, set)])
+        final_values_in_row = set([int(val) for val in row if not isinstance(val, set)])
         # loop through each column in the row
         for x in range(9):
             # check if current position refers to set - if it does then value not set yet and we are still finding it
@@ -91,7 +94,7 @@ def forward_check(grid):
             for x in range(square_x, square_x + 3):
                 for y in range(square_y, square_y + 3):
                     if not isinstance(grid[x][y], set):
-                        final_values_in_square.add(grid[x][y])  # add to the set of final values
+                        final_values_in_square.add(int(grid[x][y]))  # add to the set of final values
             # loop through each position in the square
             for x in range(square_x, square_x + 3):
                 for y in range(square_y, square_y + 3):
@@ -103,7 +106,7 @@ def forward_check(grid):
                         if len(grid[x][y]) == 1:  # can set this single value in stone
                             # get the only value from the positions set and store it in the position
                             grid[x][y] = grid[x][y].pop()
-                            final_values_in_square.add(grid[x][y])  # add to the set of 'set in stone'/final values
+                            final_values_in_square.add(int(grid[x][y]))  # add to the set of 'set in stone'/final values
                             grid_changed = True
                         elif len(grid[x][y]) == 0:  # shouldn't have happened
                             return False, None
@@ -117,17 +120,15 @@ def get_valid_complete_grid(grid):
         can_be_solved, grid_changed = forward_check(grid)
         if not can_be_solved:  # grid cannot be solved - terminate
             return False
-        elif not grid_changed:  # grid cannot be processed any more
+        if not grid_changed:  # grid cannot be processed any more
             return True
 
 
 def solve(grid):
-    resolve_zeros_in_grid(grid)
-
     can_be_solved = get_valid_complete_grid(grid)
     if not can_be_solved:
         return None
-    elif check_if_solve_completed(grid):
+    if check_if_solve_completed(grid):
         return grid
 
     # we must still have positions containing sets - try each of the values in the set
@@ -138,20 +139,29 @@ def solve(grid):
             # check if current position refers to set
             if isinstance(grid[x][y], set):
                 for val in grid[x][y]:  # go through each value in the set
-                    new_grid = dc(grid)  # perform deep copy of the grid as we will be altering values
-                    new_grid[x][y] = val  # try the current value in the set as the final value and propogate
+                    new_grid = copy_grid(grid)  # perform deep copy of the grid as we will be altering values
+                    new_grid[x][y] = val  # try the current value in the set as the final value and propagate
                     can_be_solved = solve(new_grid)  # check if the newly assigned value leads to a solved grid
                     if can_be_solved is not None:  # has been solved - return solved grid
                         return can_be_solved
                 return None  # no value in the set caused the solve to complete
 
 
-def check_if_solve_completed(grid):
+def copy_grid(grid_in):
+    grid = [[0 for x in range(9)] for y in range(9)]  # create grid with zeros
+    for y in range(9):
+        for x in range(9):
+            grid[x][y] = grid_in[x][y]
+    resolve_zeros_in_grid(grid)
+    return grid
+
+
+def check_if_solve_completed(grid_in):
     for y in range(9):
         for x in range(9):
             # check if position is instance of a set
             #   if it is then it means the value has not been made final and so the solve isn't complete
-            if isinstance(grid[x][y], set):
+            if isinstance(grid_in[x][y], set) and len(grid_in[x][y]) > 1:
                 return False
     return True
 
@@ -161,3 +171,36 @@ def resolve_zeros_in_grid(grid):
         for x in range(9):
             if grid[x][y] == 0:  # replace with set of possible values
                 grid[x][y] = set(range(1, 10))
+
+
+def read_in(field):
+    grid = copy_grid(field)
+    resolve_zeros_in_grid(grid)
+    return grid
+
+# puzzle generation
+
+def generate_random_puzzle(assignments_to_make):
+    pass  # TODO: implement
+
+
+# reading from strings
+# def parse_file(filename):
+#    return file(filename).read().strip().split("\n")
+
+
+def parse_grid_string_representation(grid_as_string):
+    grid = [[0 for x in range(9)] for y in range(9)]  # create grid with zeros
+    for y in range(9):
+        for x in range(9):
+            val = grid_as_string[x + (9 * y)]
+            if val == '.':
+                grid[x][y] = set(range(1, 10))
+            else:
+                grid[x][y] = val
+    return grid
+
+g = parse_grid_string_representation("4..7231..1...8.........9....52....7..7....3.58.............648..13...2.....2...53")
+g = solve(g)
+render_grid(g)
+print(check_if_solve_completed(g))
