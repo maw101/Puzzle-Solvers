@@ -185,11 +185,33 @@ def generate_random_puzzle(assignments_to_make):
 
 
 # reading from strings
-# def parse_file(filename):
-#    return file(filename).read().strip().split("\n")
+def parse_file(filename):
+    f = open(filename, "r")
+    return f.read().strip().split("\n")
+
+
+def solve_file(filename):
+    file = parse_file(filename)
+    print(str(len(file)) + " Grids to Solve")
+    # process all grids
+    times, solved = zip(*[timed_solve(parse_grid_string_representation(g)) for g in file])
+    if len(file) > 1:
+        print(str(len(solved)) + " Puzzles (out of " + str(len(file)) + ") solved in average of " + str(sum(times) / len(file)) + " Seconds. Max " + str(max(times)) + " Seconds.")
+
+
+def timed_solve(grid):
+    start_time = time.process_time()
+    processed_grid = solve(grid)
+    time_to_solve = time.process_time() - start_time
+    render_grid(processed_grid)
+    print(check_if_solve_completed(processed_grid))
+    print("Solved in " + str(time_to_solve) + " Seconds")
+    return time_to_solve, check_if_solve_completed(processed_grid)
 
 
 def parse_grid_string_representation(grid_as_string):
+    if len(grid_as_string) != 81:
+        return None
     grid = [[0 for x in range(9)] for y in range(9)]  # create grid with zeros
     for y in range(9):
         for x in range(9):
@@ -200,7 +222,9 @@ def parse_grid_string_representation(grid_as_string):
                 grid[x][y] = val
     return grid
 
-g = parse_grid_string_representation("4..7231..1...8.........9....52....7..7....3.58.............648..13...2.....2...53")
-g = solve(g)
-render_grid(g)
-print(check_if_solve_completed(g))
+#g = parse_grid_string_representation("4..7231..1...8.........9....52....7..7....3.58.............648..13...2.....2...53")
+#g = solve(g)
+#render_grid(g)
+#print(check_if_solve_completed(g))
+
+solve_file("Sudoku-Grids/top1465.txt")
