@@ -14,3 +14,7 @@ Utilising several datasets found at [http://magictour.free.fr/sudoku.htm](http:/
 |[topn87](Sudoku-Grids/topn87.txt)|87|87|0.5242678814942529|5.606698960999999|
 |[topn234](Sudoku-Grids/topn234.txt)|234|234|0.7892137054102566|21.929735709|
 |[top1465](Sudoku-Grids/top1465.txt)|1465|1465|0.25345617703344697|21.777229609000003|
+
+## License
+
+[GNU General Public License v3.0](https://github.com/maw101/PuzzleSolvers/blob/master/LICENSE)
