@@ -1,7 +1,6 @@
 # PuzzleSolvers
 
-## Sudoku Solver
-[Link](/sudoku-solver).
+## [Sudoku Solver](/sudoku-solver).
 
 A Sudoku Solving Algorithm which utilises Constraint Propagation in order to more efficiently determine the solution to a Sudoku puzzle.
 
@@ -18,8 +17,7 @@ Utilising several datasets found at [http://magictour.free.fr/sudoku.htm](http:/
 |[top1465](Sudoku-Grids/top1465.txt)|1465|1465|0.25345617703344697|21.777229609000003|
 
 
-## K-Puzzle Solver
-[Link](/k-puzzle-solver).
+## [K-Puzzle Solver](/k-puzzle-solver).
 
 A K-Puzzle Solving Algorithm which utliises a general AI methodology known as the [A* Search Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm).
 
