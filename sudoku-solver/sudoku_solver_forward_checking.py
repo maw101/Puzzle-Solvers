@@ -38,7 +38,7 @@ class Grid:
     def parse_string(self, grid_as_string):
         if len(grid_as_string) != (self.size ** 2):
             raise RuntimeError(
-                "String representation invalid, incorrect number of characters.")
+                "String representation invalid, incorrect number of characters for a {}x{} Sudoku.".format(self.size, self.size))
 
         for y in range(self.size):
             for x in range(self.size):
@@ -66,7 +66,7 @@ class RenderCLI:
     ################################################################################################
     @staticmethod
     def render_grid(grid):
-        if not grid.grid:
+        if (not grid) or (not grid.grid):
             print("No Solution")
         else:
             square_size = grid.size // 3
@@ -138,32 +138,41 @@ class SudokuSolver():
 
     ################################################################################################
     def __forward_check(self, grid):
+        ############################################################################################
+        def process_position(x, y, final_values):
+            # check if we are still determining a value for the current position (set instance)
+            if isinstance(grid.grid[x][y], set):
+                # try to set value
+                # get set difference between position and values already set
+                grid.grid[x][y] = grid.grid[x][y] - final_values
+
+                # can set this single value in stone
+                if len(grid.grid[x][y]) == 1:
+                    # get the only value from the positions set and store it in the position
+                    grid.grid[x][y] = grid.grid[x][y].pop()
+                    # add to the set of 'set in stone'/final values
+                    final_values.add(int(grid.grid[x][y]))
+                    return True # grid changed
+                elif len(grid.grid[x][y]) == 0: # shouldn't have 0 possibilities, error occurred
+                    return None # grid unable to be changed
+
+            return False # grid not changed
+
         grid_changed = False
 
         for x in range(grid.size):  # columns
             column = grid.grid[x]  # get all positions
             # get all values that are set in stone within the column
             #   only adds values to the set if they are not an instance of a set
-            #   ie when there is only one value in the position
+            #   i.e. when there is only one value in the position
             final_values_in_column = set(
                 [int(val) for val in column if not isinstance(val, set)])
 
             for y in range(grid.size):  # rows
-                # check if current position refers to set - if it does then we are still trying to
-                #   determine the correct value
-                if isinstance(grid.grid[x][y], set):
-                    # try to set value
-                    # get set difference between position and values already set in the column
-                    grid.grid[x][y] = grid.grid[x][y] - final_values_in_column
-
-                    if len(grid.grid[x][y]) == 1:  # can set this single value in stone
-                        # get the only value from the positions set and store it in the position
-                        grid.grid[x][y] = grid.grid[x][y].pop()
-                        # add to the set of 'set in stone'/final values
-                        final_values_in_column.add(grid.grid[x][y])
-                        grid_changed = True
-                    elif len(grid.grid[x][y]) == 0:  # shouldn't have happened
-                        return False, None
+                result = process_position(x, y, final_values_in_column)
+                if result is None:
+                    return False, None
+                grid_changed = result
 
         for y in range(grid.size):  # rows
             row = [grid.grid[x][y]
@@ -171,26 +180,15 @@ class SudokuSolver():
 
             # get all values that are set in stone within the row
             #   only adds values to the set if they are not an instance of a set
-            #   ie when there is only one value in the position
+            #   i.e. when there is only one value in the position
             final_values_in_row = set(
                 [int(val) for val in row if not isinstance(val, set)])
 
             for x in range(grid.size):  # columns
-                # check if current position refers to set - if it does then we are still trying to
-                #   determine the correct value
-                if isinstance(grid.grid[x][y], set):
-                    # try to set value
-                    # get set difference between position and values already set in the column
-                    grid.grid[x][y] = grid.grid[x][y] - final_values_in_row
-
-                    if len(grid.grid[x][y]) == 1:  # can set this single value in stone
-                        # get the only value from the positions set and store it in the position
-                        grid.grid[x][y] = grid.grid[x][y].pop()
-                        # add to the set of 'set in stone'/final values
-                        final_values_in_row.add(grid.grid[x][y])
-                        grid_changed = True
-                    elif len(grid.grid[x][y]) == 0:  # shouldn't have happened
-                        return False, None
+                result = process_position(x, y, final_values_in_row)
+                if result is None:
+                    return False, None
+                grid_changed = result
 
         # check each squares cells
         square_size = grid.size // 3
@@ -201,7 +199,7 @@ class SudokuSolver():
                 #   we will add such values to this set. Final values will not be an
                 #   instance of a set when checking a position.
                 final_values_in_square = set()
-                # check all positions in square for possible final values - ie positions not an instance of a set
+                # check all positions in square for possible final values - i.e. not a set instance
                 for x in range(square_x, square_x + square_size):
                     for y in range(square_y, square_y + square_size):
                         if not isinstance(grid.grid[x][y], set):
@@ -211,23 +209,10 @@ class SudokuSolver():
                 # loop through each position in the square
                 for x in range(square_x, square_x + square_size):
                     for y in range(square_y, square_y + square_size):
-                        # check if current position refers to set - if it does then value not set yet, still finding it
-                        if isinstance(grid.grid[x][y], set):
-                            # try to set value
-                            # get set difference between position and values already set in the column
-                            grid.grid[x][y] = grid.grid[x][y] - \
-                                final_values_in_square
-
-                            # can set this single value in stone
-                            if len(grid.grid[x][y]) == 1:
-                                # get the only value from the positions set and store it in the position
-                                grid.grid[x][y] = grid.grid[x][y].pop()
-                                # add to the set of 'set in stone'/final values
-                                final_values_in_square.add(
-                                    int(grid.grid[x][y]))
-                                grid_changed = True
-                            elif len(grid.grid[x][y]) == 0:  # shouldn't have happened
-                                return False, None
+                        result = process_position(x, y, final_values_in_square)
+                        if result is None:
+                            return False, None
+                        grid_changed = result
 
         return True, grid_changed
 
@@ -236,24 +221,24 @@ class SudokuSolver():
 class BenchmarkSolver:
     ################################################################################################
     def solve_file(self, filename):
-        all_grids_as_str = self.parse_file(filename)
+        all_grids_as_str = self.__parse_file(filename)
         logging.info("{} grid(s) to solve".format(len(all_grids_as_str)))
 
         # process all grids in turn
         g = Grid()
-        times, solved = zip(*[self.timed_solve(g.parse_string(g_as_str))
+        times, solved = zip(*[self.__timed_solve(g.parse_string(g_as_str))
                             for g_as_str in all_grids_as_str])
         
         grid_count = len(all_grids_as_str)
         self.__print_stats(times, solved, grid_count)
 
     ################################################################################################
-    def parse_file(self, filename):
+    def __parse_file(self, filename):
         f = open(filename, "r")
         return f.read().strip().split("\n")
 
     ################################################################################################
-    def timed_solve(self, grid):
+    def __timed_solve(self, grid):
         solver = SudokuSolver()
 
         start_time = time.process_time()
@@ -262,7 +247,7 @@ class BenchmarkSolver:
 
         solved = processed_grid.is_filled()
         if solved:
-            logging.info("Solved in {} seconds".format(time_to_solve))
+            logging.info("Grid solved in {} seconds".format(time_to_solve))
 
         return time_to_solve, solved
 
@@ -287,5 +272,5 @@ if __name__ == "__main__":
     RenderCLI().render_grid(grid)
 
     # Benchmarks
-    # benchmarker = BenchmarkSolver()
-    # benchmarker.solve_file("Sudoku-Grids/top1465.txt")
+    benchmarker = BenchmarkSolver()
+    benchmarker.solve_file("Sudoku-Grids/top1465.txt")
