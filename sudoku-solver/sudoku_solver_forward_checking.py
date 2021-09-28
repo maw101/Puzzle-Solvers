@@ -1,6 +1,6 @@
 import time
 
-
+####################################################################################################
 def render_grid(grid):
     if grid is None:
         print("No Solution")
@@ -16,21 +16,7 @@ def render_grid(grid):
             if row in [2, 5]:  # print divider every 3 rows
                 print("---------------------")
 
-
-def render_grid_with_sets(grid):  # used for debug purposes
-    if grid is not None:
-        # print each row and values in grid
-        for row in range(9):
-            row_string = ""
-            for col in range(9):
-                row_string += str(grid[col][row]) + ","
-                if col in [2, 5]:  # print divider every 3 columns
-                    row_string += "| "
-            print(row_string)
-            if row in [2, 5]:  # print divider every 3 rows
-                print("---------------------")
-
-
+####################################################################################################
 def forward_check(grid):
     grid_changed = False
 
@@ -113,7 +99,7 @@ def forward_check(grid):
 
     return True, grid_changed
 
-
+####################################################################################################
 def get_valid_complete_grid(grid):
     # loop until the grid has not been changed OR if we determine that the grid cannot be solved
     while True:
@@ -123,7 +109,7 @@ def get_valid_complete_grid(grid):
         if not grid_changed:  # grid cannot be processed any more
             return True
 
-
+####################################################################################################
 def solve(grid):
     can_be_solved = get_valid_complete_grid(grid)
     if not can_be_solved:
@@ -146,7 +132,7 @@ def solve(grid):
                         return can_be_solved
                 return None  # no value in the set caused the solve to complete
 
-
+####################################################################################################
 def copy_grid(grid_in):
     grid = [[0 for x in range(9)] for y in range(9)]  # create grid with zeros
     for y in range(9):
@@ -155,7 +141,7 @@ def copy_grid(grid_in):
     resolve_zeros_in_grid(grid)
     return grid
 
-
+####################################################################################################
 def check_if_solve_completed(grid_in):
     for y in range(9):
         for x in range(9):
@@ -165,31 +151,33 @@ def check_if_solve_completed(grid_in):
                 return False
     return True
 
-
+####################################################################################################
 def resolve_zeros_in_grid(grid):
     for y in range(9):
         for x in range(9):
             if grid[x][y] == 0:  # replace with set of possible values
                 grid[x][y] = set(range(1, 10))
 
-
+####################################################################################################
 def read_in(field):
     grid = copy_grid(field)
     resolve_zeros_in_grid(grid)
     return grid
 
+####################################################################################################
+
 # puzzle generation
-
+####################################################################################################
 def generate_random_puzzle(assignments_to_make):
-    pass  # TODO: implement
+    raise NotImplementedError() # TODO: implement
 
-
+####################################################################################################
 # reading from strings
 def parse_file(filename):
     f = open(filename, "r")
     return f.read().strip().split("\n")
 
-
+####################################################################################################
 def solve_file(filename):
     file = parse_file(filename)
     print(str(len(file)) + " Grids to Solve")
@@ -198,7 +186,7 @@ def solve_file(filename):
     if len(file) > 1:
         print(str(len(solved)) + " Puzzles (out of " + str(len(file)) + ") solved in average of " + str(sum(times) / len(file)) + " Seconds. Max " + str(max(times)) + " Seconds.")
 
-
+####################################################################################################
 def timed_solve(grid):
     start_time = time.process_time()
     processed_grid = solve(grid)
@@ -208,7 +196,7 @@ def timed_solve(grid):
     print("Solved in " + str(time_to_solve) + " Seconds")
     return time_to_solve, check_if_solve_completed(processed_grid)
 
-
+####################################################################################################
 def parse_grid_string_representation(grid_as_string):
     if len(grid_as_string) != 81:
         return None
@@ -222,9 +210,11 @@ def parse_grid_string_representation(grid_as_string):
                 grid[x][y] = val
     return grid
 
-#g = parse_grid_string_representation("4..7231..1...8.........9....52....7..7....3.58.............648..13...2.....2...53")
-#g = solve(g)
-#render_grid(g)
-#print(check_if_solve_completed(g))
+####################################################################################################
+if __name__ == "__main__":
+    g = parse_grid_string_representation("8....53......8......24.76........4.33......96..97.41.........321.....7..67.......")
+    g = solve(g)
+    render_grid(g)
+    print(check_if_solve_completed(g))
 
-solve_file("Sudoku-Grids/top1465.txt")
+    #solve_file("Sudoku-Grids/top1465.txt")
